@@ -10,7 +10,8 @@ def _call_openai(messages: list[ChatCompletionMessageParam], model: str):
 
     completion = client.chat.completions.create(
         model=model,
-        messages=messages
+        messages=messages,
+        temperature=0.0
     )
 
     return completion.choices[0].message.content

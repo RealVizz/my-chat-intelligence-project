@@ -84,6 +84,16 @@ def get_raw_message_count():
     return count
 
 
+def load_unique_identities():
+    """Loads all unique names from the identities table."""
+    conn = _get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT name FROM identities")
+    identities = [row['name'] for row in cursor.fetchall()]
+    conn.close()
+    return identities
+
+
 def add_raw_message(message_id: str, message_data: dict):
     """
     Adds a raw message to the database, ignoring it if the ID already exists.

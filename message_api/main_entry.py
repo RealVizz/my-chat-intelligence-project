@@ -14,6 +14,7 @@ async def lifespan(app: FastAPI):
     """ Handles application startup and shutdown events. """
     db_utils.initialize_database()
     query_service.load_history_on_startup()
+    query_service.load_identities_on_startup()
     asyncio.create_task(bg_sync_service.start_background_sync())
     yield
 
