@@ -1,20 +1,31 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, status
 
 from message_api.schemas import UserQueryRequest, QueryResponse
 from message_api.services import query_service
+from message_api.utils import db_utils
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """ Handles application startup and shutdown events. """
+    db_utils.initialize_database()
+    query_service.load_history_on_startup()
+    yield
+
 
 app = FastAPI(
     title="Message Intelligence Engine",
     description="API for answering questions about member data.",
     version="0.1.0",
+    lifespan=lifespan
 )
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)
 def perform_health_check():
-    """
-    Performs a health check and returns the system's status.
-    """
+    """Performs a health check and returns the system's status."""
     return {"status": "ok"}
 
 
