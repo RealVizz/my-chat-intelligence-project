@@ -75,9 +75,12 @@ async def run_sync_cycle():
             print(f"Processed page starting at skip={skip}.")
             
             skip += len(messages_response.items)
+    
+    print("--- Sync cycle finished. ---")
 
 async def start_background_sync():
     """The main background task loop that runs indefinitely."""
     while True:
         await run_sync_cycle()
+        # print(f"--- Sleeping for {config.BACKGROUND_SYNC_INTERVAL_SECONDS} seconds. ---")
         await asyncio.sleep(config.BACKGROUND_SYNC_INTERVAL_SECONDS)
