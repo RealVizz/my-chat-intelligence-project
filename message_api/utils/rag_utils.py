@@ -25,8 +25,8 @@ def initialize_rag():
         _collection = _client.get_or_create_collection(name=COLLECTION_NAME)
 
 
-def add_document_to_store(doc_id: str, document: str):
-    """Generates an embedding for a document and adds it to the vector store."""
+def add_document_to_store(doc_id: str, document: str, metadata: dict):
+    """Generates an embedding for a document and adds it to the vector store with metadata."""
     if _collection is None or _model is None:
         return
 
@@ -34,21 +34,20 @@ def add_document_to_store(doc_id: str, document: str):
     _collection.add(
         documents=[document],
         embeddings=[embedding.tolist()],
-        ids=[doc_id]
+        ids=[doc_id],
+        metadatas=[metadata]
     )
 
 
-def find_relevant_documents(query: str, filter_ids: list[str] = None, top_k: int = 5):
-    """Finds relevant document IDs for a query, with an optional filter."""
+def find_relevant_documents(query: str, user_name: str = None, top_k: int = 5):
+    """Finds relevant document IDs for a query, with an optional filter by user_name."""
     if _collection is None or _model is None:
         return []
 
     query_embedding = _model.encode(query, convert_to_tensor=False)
 
-    if filter_ids:
-        # ChromaDB's 'where' clause for filtering is more robust for this.
-        # Creating a filter to match any of the provided IDs.
-        where_filter = {"$or": [{"id": doc_id} for doc_id in filter_ids]}
+    if user_name:
+        where_filter = {"user_name": user_name}
         results = _collection.query(
             query_embeddings=[query_embedding.tolist()],
             n_results=top_k,
@@ -60,4 +59,4 @@ def find_relevant_documents(query: str, filter_ids: list[str] = None, top_k: int
             n_results=top_k
         )
 
-    return results['ids'][0] if results and 'ids' in results else []
+    return results['ids'][0] if results and results['ids'] else []

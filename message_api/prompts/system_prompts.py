@@ -14,10 +14,10 @@ User Query:
 Task:
 1. Analyze the User Query.
 2. Compare it against the Candidate Names.
-3. Ignore any names in the Chat History that do not appear in the Candidate Names list.
-4. If Candidate Names list is empty, refer to chat history for a probable name.
-4. Put weightage to history timeline, latest messages comes at the end and have higher weightage.
-5. Account for typos (e.g., 'Cava Lli' matches 'Cavalli').
+3. If the Chat History is empty, base your decision solely on the User Query and the Candidate Names.
+4. If the Chat History is NOT empty, use it to understand context, especially for pronouns (he, she, they).
+5. Put weightage on the history timeline; latest messages appear at the end and have higher weightage.
+6. Account for typos (e.g., 'Cava Lli' matches 'Cavalli').
 
 Question:
 Out of the Candidate Names list provided above, which is the most probable name the user is referring to? 

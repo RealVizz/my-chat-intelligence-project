@@ -96,13 +96,7 @@ def _resolve_entity(question: str) -> str | None:
 
 def _filter_and_search_documents(question: str, resolved_identity: str | None) -> str:
     """Encapsulates the 'Filter' and 'Search' steps: retrieves relevant context."""
-    filter_ids = None
-    if resolved_identity:
-        filter_ids = db_utils.get_message_ids_by_user_name(resolved_identity)
-    else:
-        print("--- Searching all documents as no specific entity was resolved. ---")
-
-    relevant_doc_ids = rag_utils.find_relevant_documents(query=question, filter_ids=filter_ids)
+    relevant_doc_ids = rag_utils.find_relevant_documents(query=question, user_name=resolved_identity)
     retrieved_docs = db_utils.get_raw_messages_by_ids(relevant_doc_ids)
     context = _prepare_context_from_retrieved_docs(retrieved_docs)
     return context
@@ -119,11 +113,11 @@ def _generate_answer(question: str, context: str) -> str:
 
 def process_user_query(question: str):
     """Processes a user query using the full RAG pipeline."""
-    resolved_identity = _resolve_entity(question)  # 1: "Who" - Entity Resolution.
-    context = _filter_and_search_documents(question, resolved_identity)  # 2: "Filter" & "Search" - Retrieval.
-    llm_answer = _generate_answer(question, context) # 3: "Answer" - Generation.
+    resolved_identity = _resolve_entity(question)
+    context = _filter_and_search_documents(question, resolved_identity)
+    llm_answer = _generate_answer(question, context)
 
-    if llm_answer:  # Step 4: History
+    if llm_answer:
         _add_turn_to_history(user_content=question, assistant_content=llm_answer)
 
     return llm_answer

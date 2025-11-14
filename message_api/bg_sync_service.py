@@ -44,8 +44,12 @@ def _process_and_store_messages(messages_response: ExternalMessagesResponseSchem
         if was_inserted:
             db_utils.add_identity_record(message.user_name, message.id)
         
-        # Always attempt to add to the vector store. ChromaDB handles duplicates.
-        rag_utils.add_document_to_store(doc_id=message.id, document=message.message)
+        # Always attempt to add to the vector store with metadata.
+        rag_utils.add_document_to_store(
+            doc_id=message.id,
+            document=message.message,
+            metadata={"user_name": message.user_name}
+        )
 
 
 async def _run_sync_cycle():

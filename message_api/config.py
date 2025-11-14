@@ -14,7 +14,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 OPENAI_API_MODEL = "gpt-4o-mini"  # gpt-4o-mini , gpt-5-mini , gpt-5-nano
-GEMINI_API_MODEL = "gemini-2.5-flash"
+GEMINI_API_MODEL = "gemini-2.5-flash-lite-preview-09-2025" # "gemini-2.5-flash-lite"  # "gemini-2.5-flash"
 
 EXTERNAL_API_BASE_URL = "https://november7-730026606190.europe-west1.run.app"
 EXTERNAL_API_MESSAGES_ENDPOINT = "/messages/"
