@@ -113,7 +113,7 @@ def _generate_answer(question: str, context: str) -> str:
     messages_for_llm = [msg.model_dump(exclude={'timestamp'}) for msg in _chat_history]
     question_with_context = f"Context:\n{context}\n\nQuestion: {question}"
     messages_for_llm.append({"role": "user", "content": question_with_context})
-    llm_answer = llm_utils.get_llm_response(messages=messages_for_llm)
+    llm_answer = llm_utils.get_llm_response(messages=messages_for_llm, provider="gemini")
     return llm_answer
 
 
