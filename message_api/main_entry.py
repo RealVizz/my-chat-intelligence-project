@@ -6,13 +6,14 @@ from fastapi import FastAPI, status
 from message_api import bg_sync_service
 from message_api.schemas import UserQueryRequest, QueryResponse
 from message_api.services import query_service
-from message_api.utils import db_utils
+from message_api.utils import db_utils, rag_utils
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """ Handles application startup and shutdown events. """
     db_utils.initialize_database()
+    rag_utils.initialize_rag()
     query_service.load_history_on_startup()
     query_service.load_identities_on_startup()
     asyncio.create_task(bg_sync_service.start_background_sync())

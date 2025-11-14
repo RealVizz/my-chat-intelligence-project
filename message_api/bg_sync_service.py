@@ -4,7 +4,7 @@ import httpx
 
 from message_api import config
 from message_api.schemas import ExternalMessagesResponseSchemaObj
-from message_api.utils import db_utils
+from message_api.utils import db_utils, rag_utils
 
 
 async def _fetch_messages_page(client: httpx.AsyncClient, skip: int, limit: int):
@@ -38,11 +38,14 @@ async def _fetch_messages_page(client: httpx.AsyncClient, skip: int, limit: int)
 
 
 def _process_and_store_messages(messages_response: ExternalMessagesResponseSchemaObj):
-    """Processes a page of messages, stores them, and returns the count of new messages."""
+    """Processes a page of messages, stores them, and updates the vector store."""
     for message in messages_response.items:
         was_inserted = db_utils.add_raw_message(message.id, message.model_dump(mode='json'))
         if was_inserted:
             db_utils.add_identity_record(message.user_name, message.id)
+        
+        # Always attempt to add to the vector store. ChromaDB handles duplicates.
+        rag_utils.add_document_to_store(doc_id=message.id, document=message.message)
 
 
 async def _run_sync_cycle():

@@ -5,3 +5,5 @@ openai
 python-dotenv
 httpx
 rapidfuzz
+chromadb
+sentence-transformers

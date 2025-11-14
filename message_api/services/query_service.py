@@ -4,7 +4,7 @@ from rapidfuzz import process
 
 from message_api.prompts import system_prompts
 from message_api.schemas import ChatMessageSchemaObj
-from message_api.utils import llm_utils, db_utils
+from message_api.utils import llm_utils, db_utils, rag_utils
 
 _chat_history: list[ChatMessageSchemaObj] = []
 _identities_cache: list[str] = []
@@ -65,21 +65,19 @@ def _identify_subject_of_query(question: str, history: list[ChatMessageSchemaObj
     return None
 
 
-def _prepare_messages_for_llm(question: str, context: str = None):
-    """Prepares the full message list for the main LLM call."""
-    messages = [msg.model_dump(exclude={'timestamp'}) for msg in _chat_history]
+def _prepare_context_from_retrieved_docs(docs: list[dict]):
+    """Formats the retrieved documents into a string context for the LLM."""
+    if not docs:
+        return "No relevant information found in the knowledge base."
 
-    if context:
-        question_with_context = f"Context: {context}\n\nQuestion: {question}"
-        messages.append({"role": "user", "content": question_with_context})
-    else:
-        messages.append({"role": "user", "content": question})
-
-    return messages
+    context_str = "Relevant Information:\n"
+    for doc in docs:
+        context_str += f"- From {doc.get('user_name', 'Unknown')}: '{doc.get('message', '')}'\n"
+    return context_str
 
 
-def process_user_query(question: str):
-    """Processes a user query using a two-step LLM approach for entity resolution and answering."""
+def _resolve_entity(question: str) -> str | None:
+    """Encapsulates the 'Who' step: resolves the entity from the user's question."""
     potential_matches = _find_potential_identity_matches(question)
 
     resolved_identity = _identify_subject_of_query(
@@ -88,18 +86,44 @@ def process_user_query(question: str):
         candidates=potential_matches
     )
 
-    context = None
     if resolved_identity:
         print(f"--- Entity Resolution: LLM identified '{resolved_identity}' ---")
-        context = f"The user is asking about {resolved_identity}."
     else:
         print("--- Entity Resolution: LLM could not identify a subject. ---")
 
-    messages_for_llm = _prepare_messages_for_llm(question=question, context=context)
+    return resolved_identity
 
+
+def _filter_and_search_documents(question: str, resolved_identity: str | None) -> str:
+    """Encapsulates the 'Filter' and 'Search' steps: retrieves relevant context."""
+    filter_ids = None
+    if resolved_identity:
+        filter_ids = db_utils.get_message_ids_by_user_name(resolved_identity)
+    else:
+        print("--- Searching all documents as no specific entity was resolved. ---")
+
+    relevant_doc_ids = rag_utils.find_relevant_documents(query=question, filter_ids=filter_ids)
+    retrieved_docs = db_utils.get_raw_messages_by_ids(relevant_doc_ids)
+    context = _prepare_context_from_retrieved_docs(retrieved_docs)
+    return context
+
+
+def _generate_answer(question: str, context: str) -> str:
+    """Encapsulates the 'Answer' step: generates the LLM's response."""
+    messages_for_llm = [msg.model_dump(exclude={'timestamp'}) for msg in _chat_history]
+    question_with_context = f"Context:\n{context}\n\nQuestion: {question}"
+    messages_for_llm.append({"role": "user", "content": question_with_context})
     llm_answer = llm_utils.get_llm_response(messages=messages_for_llm)
+    return llm_answer
 
-    if llm_answer:
+
+def process_user_query(question: str):
+    """Processes a user query using the full RAG pipeline."""
+    resolved_identity = _resolve_entity(question)  # 1: "Who" - Entity Resolution.
+    context = _filter_and_search_documents(question, resolved_identity)  # 2: "Filter" & "Search" - Retrieval.
+    llm_answer = _generate_answer(question, context) # 3: "Answer" - Generation.
+
+    if llm_answer:  # Step 4: History
         _add_turn_to_history(user_content=question, assistant_content=llm_answer)
 
     return llm_answer

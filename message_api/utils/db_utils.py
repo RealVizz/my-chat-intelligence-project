@@ -121,3 +121,30 @@ def add_identity_record(name: str, external_message_id: str):
     )
     conn.commit()
     conn.close()
+
+
+def get_message_ids_by_user_name(name: str):
+    """Fetches all message IDs associated with a given user name."""
+    conn = _get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT external_message_id FROM identities WHERE name = ?", (name,))
+    ids = [row['external_message_id'] for row in cursor.fetchall()]
+    conn.close()
+    return ids
+
+
+def get_raw_messages_by_ids(ids: list[str]):
+    """Fetches raw messages from the database by a list of IDs."""
+    if not ids:
+        return []
+
+    conn = _get_db_connection()
+    cursor = conn.cursor()
+
+    placeholders = ','.join('?' for _ in ids)
+    query = f"SELECT json_body FROM raw_messages WHERE id IN ({placeholders})"
+
+    cursor.execute(query, ids)
+    messages = [json.loads(row['json_body']) for row in cursor.fetchall()]
+    conn.close()
+    return messages
