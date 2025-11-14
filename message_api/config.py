@@ -24,4 +24,4 @@ EXTERNAL_API_PAGE_LIMIT = 100
 BACKGROUND_SYNC_INTERVAL_SECONDS = 300  # 5 minutes
 
 ENTITY_RESOLUTION_HISTORY_LENGTH = 10  # Number of past messages for entity resolution LLM context
-ANSWER_GENERATION_HISTORY_LENGTH = 10  # Number of past messages for answer generation LLM context
+ANSWER_GENERATION_HISTORY_LENGTH = 100  # Number of past messages for answer generation LLM context
