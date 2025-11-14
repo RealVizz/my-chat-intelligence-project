@@ -97,7 +97,7 @@ def process_user_query(question: str):
 
     messages_for_llm = _prepare_messages_for_llm(question=question, context=context)
 
-    llm_answer = llm_utils.get_llm_response(messages=messages_for_llm)
+    llm_answer = llm_utils.get_llm_response(messages=messages_for_llm, provider="gemini")
 
     if llm_answer:
         _add_turn_to_history(user_content=question, assistant_content=llm_answer)
