@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from rapidfuzz import process
 
+from message_api.config import ENTITY_RESOLUTION_HISTORY_LENGTH, ANSWER_GENERATION_HISTORY_LENGTH
 from message_api.prompts import system_prompts
 from message_api.schemas import ChatMessageSchemaObj
 from message_api.utils import llm_utils, db_utils, rag_utils
@@ -48,7 +49,7 @@ def _identify_subject_of_query(question: str, history: list[ChatMessageSchemaObj
     if not candidates:
         return None
 
-    history_str = "\n".join([f"{msg.role}: {msg.content}" for msg in history[-10:]])
+    history_str = "\n".join([f"{msg.role}: {msg.content}" for msg in history[-ENTITY_RESOLUTION_HISTORY_LENGTH:]])
     candidates_str = ", ".join(candidates)
 
     prompt = system_prompts.ENTITY_RESOLUTION_PROMPT.format(
@@ -104,7 +105,8 @@ def _filter_and_search_documents(question: str, resolved_identity: str | None) -
 
 def _generate_answer(question: str, context: str) -> str:
     """Encapsulates the 'Answer' step: generates the LLM's response."""
-    messages_for_llm = [msg.model_dump(exclude={'timestamp'}) for msg in _chat_history]
+    temp_chat_history = _chat_history[-ANSWER_GENERATION_HISTORY_LENGTH:]
+    messages_for_llm = [msg.model_dump(exclude={'timestamp'}) for msg in temp_chat_history]
     question_with_context = f"Context:\n{context}\n\nQuestion: {question}"
     messages_for_llm.append({"role": "user", "content": question_with_context})
     llm_answer = llm_utils.get_llm_response(messages=messages_for_llm, provider="gemini")
