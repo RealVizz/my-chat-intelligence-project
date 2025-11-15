@@ -1,0 +1,15 @@
+# IDE and cache files
+.idea/
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.venv/
+
+# Data and logs
+data/
+logs/
+
+# Exploratory analysis scripts
+exploratory_analysis/
