@@ -42,6 +42,29 @@ A comprehensive exploratory data analysis (EDA) was performed on the source data
 
 ---
 
+## API Usage
+
+The primary endpoint for interacting with the Message Intelligence Engine is `/ask`.
+
+### `/ask` Endpoint
+
+-   **Method:** `POST`
+-   **URL:** `http://127.0.0.1:11111/ask` (or your configured host/port)
+-   **Request Body:**
+    ```json
+    {
+        "question": "Your natural language question here."
+    }
+    ```
+-   **Example Request (using `curl`):**
+    ```bash
+    curl -X POST "http://127.0.0.1:11111/ask" \
+         -H "Content-Type: application/json" \
+         -d '{"question": "When is Layla planning her trip to London?"}'
+    ```
+
+---
+
 ## Project Setup
 
 1.  **Clone the repository:**
