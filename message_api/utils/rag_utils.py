@@ -1,3 +1,4 @@
+import sys
 import chromadb
 from sentence_transformers import SentenceTransformer
 
@@ -15,8 +16,14 @@ def initialize_rag():
     """Initializes the RAG model and vector store client."""
     global _client, _collection, _model
 
-    if _model is None:
-        _model = SentenceTransformer(MODEL_NAME)
+    try:
+        if _model is None:
+            print("--- RAG: Loading sentence-transformer model... ---")
+            _model = SentenceTransformer(MODEL_NAME)
+    except Exception as e:
+        print(f"FATAL: Failed to load sentence-transformer model '{MODEL_NAME}'. Error: {e}")
+        print("Please ensure you have a working internet connection to download the model on first run.")
+        sys.exit(1)
 
     if _client is None:
         _client = chromadb.PersistentClient(path=str(config.DATA_DIR / "chroma_db"))
@@ -39,7 +46,7 @@ def add_document_to_store(doc_id: str, document: str, metadata: dict):
     )
 
 
-def find_relevant_documents(query: str, user_name: str = None, top_k: int = 5):
+def find_relevant_documents(query: str, user_name: str = None):
     """Finds relevant document IDs for a query, with an optional filter by user_name."""
     if _collection is None or _model is None:
         return []
@@ -50,13 +57,13 @@ def find_relevant_documents(query: str, user_name: str = None, top_k: int = 5):
         where_filter = {"user_name": user_name}
         results = _collection.query(
             query_embeddings=[query_embedding.tolist()],
-            n_results=top_k,
+            n_results=config.RAG_TOP_K,
             where=where_filter
         )
     else:
         results = _collection.query(
             query_embeddings=[query_embedding.tolist()],
-            n_results=top_k
+            n_results=config.RAG_TOP_K
         )
 
     return results['ids'][0] if results and results['ids'] else []
