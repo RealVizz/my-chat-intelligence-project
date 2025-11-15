@@ -50,10 +50,10 @@ def _resolve_entity_and_optimize_query(question: str, history: list[ChatMessageS
     Uses an LLM call to identify the subject and create an optimal search query.
     Returns a tuple of (resolved_name, search_query).
     """
-    if not candidates:
-        return None, question  # Fallback to original question
+    # if not candidates:
+    #     return None, question # Fallback to original question
 
-    history_str = "\n".join([f"{msg.role}: {msg.content}" for msg in history[-ENTITY_RESOLUTION_HISTORY_LENGTH:]])
+    history_str = "\n\n".join([f"{msg.role}: {msg.content}" for msg in history[-ENTITY_RESOLUTION_HISTORY_LENGTH:]])
     candidates_str = ", ".join(candidates)
 
     prompt = system_prompts.ENTITY_RESOLUTION_PROMPT.format(
@@ -62,15 +62,15 @@ def _resolve_entity_and_optimize_query(question: str, history: list[ChatMessageS
         question=question
     )
 
-    llm_response = llm_utils.get_llm_response(messages=[{"role": "user", "content": prompt}])
+    llm_response = llm_utils.get_llm_response(messages=[{"role": "user", "content": prompt}], provider="gemini")
 
     try:
         response_data = json.loads(llm_response)
         resolved_name = response_data.get("resolved_name")
         search_query = response_data.get("search_query", question)
-
-        if resolved_name == "None" or (resolved_name and resolved_name not in candidates):
-            return None, search_query
+        #
+        # if resolved_name == "None" or (resolved_name and resolved_name not in candidates):
+        #     return None, search_query
 
         return resolved_name, search_query
     except (json.JSONDecodeError, AttributeError):
@@ -85,7 +85,9 @@ def _prepare_context_from_retrieved_docs(docs: list[dict]):
 
     context_str = "Relevant Information:\n"
     for doc in docs:
-        context_str += f"- From {doc.get('user_name', 'Unknown')}: '{doc.get('message', '')}'\n"
+        timestamp = doc.get('timestamp', 'Unknown time')
+        context_str += (f"- Message from {doc.get('user_name', 'Unknown')} "
+                        f"(sent on {timestamp}): '{doc.get('message', '')}'\n")
     return context_str
 
 
@@ -105,8 +107,13 @@ def _retrieve_context(search_query: str, resolved_identity: str | None) -> str:
 
 def _generate_answer(question: str, context: str) -> str:
     """Encapsulates the 'Answer' step: generates the LLM's response."""
+    current_time_utc = datetime.now(timezone.utc).isoformat()
 
-    prompt = system_prompts.ANSWER_GENERATION_PROMPT.format(context=context, question=question)
+    prompt = system_prompts.ANSWER_GENERATION_PROMPT.format(
+        current_time_utc=current_time_utc,
+        context=context,
+        question=question
+    )
 
     # For the final answer, we still provide chat history for conversational context.
     messages_for_llm = \
