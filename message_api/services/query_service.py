@@ -134,6 +134,10 @@ def process_user_query(question: str):
         candidates=potential_matches
     )
 
+    # Safe flow: If no entity is resolved, return a helpful message.
+    if not resolved_identity or resolved_identity == "None":
+        return "I can't seem to find that person in my records. Please provide a full name for clarity."
+
     # "Filter" & "Search" - Retrieval.
     context = _retrieve_context(search_query, resolved_identity)
 
