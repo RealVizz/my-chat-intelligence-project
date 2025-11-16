@@ -69,6 +69,7 @@ def _resolve_entity_and_optimize_query(question: str, history: list[ChatMessageS
         return None, question
 
     try:
+        llm_response = llm_response.lower()
         response_data = json.loads(llm_response)
         resolved_name = response_data.get("resolved_name")
         search_query = response_data.get("search_query", question)
