@@ -44,9 +44,22 @@ A comprehensive exploratory data analysis (EDA) was performed on the source data
 
 ## API Usage
 
-The primary endpoint for interacting with the Message Intelligence Engine is `/ask`.
+### Live Demo Endpoint
 
-### `/ask` Endpoint
+The service is deployed on Google Cloud Engine and is publicly accessible.
+
+-   **Base URL:** `http://34.73.138.207:11111`
+-   **Health Check:** `http://34.73.138.207:11111/health`
+-   **Example Query (using `curl`):**
+    ```bash
+    curl -X POST "http://34.73.138.207:11111/ask" \
+         -H "Content-Type: application/json" \
+         -d '{"question": "How many cars does Vikram Desai have?"}'
+    ```
+
+### Local Usage
+
+The primary endpoint for interacting with the Message Intelligence Engine is `/ask`.
 
 -   **Method:** `POST`
 -   **URL:** `http://127.0.0.1:11111/ask` (or your configured host/port)
