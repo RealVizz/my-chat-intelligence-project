@@ -59,7 +59,6 @@ def _call_gemini(messages: list[dict], model: str):
 
         gemini_messages = _convert_messages_to_gemini_format(messages)
         alternating_messages = _ensure_alternating_gemini_roles(gemini_messages)
-        print(gemini_messages)
         response = gemini_model.generate_content(
             alternating_messages,
             generation_config=genai.types.GenerationConfig(temperature=0.0)
