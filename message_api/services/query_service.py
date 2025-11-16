@@ -124,10 +124,12 @@ def _generate_answer(question: str, context: str) -> str | None:
 
 def process_user_query(question: str):
     """Processes a user query using the full RAG pipeline."""
+    question_lower = question.lower()
+
     # "Who" & "Optimize" - Entity Resolution and Query Transformation.
-    potential_matches = _find_potential_identity_matches(question)
+    potential_matches = _find_potential_identity_matches(question_lower)
     resolved_identity, search_query = _resolve_entity_and_optimize_query(
-        question=question,
+        question=question_lower,
         history=_chat_history,
         candidates=potential_matches
     )
@@ -140,7 +142,7 @@ def process_user_query(question: str):
     context = _retrieve_context(search_query, resolved_identity)
 
     # "Answer" - Generation.
-    llm_answer = _generate_answer(question, context)
+    llm_answer = _generate_answer(question_lower, context)
 
     # History.
     if not llm_answer:

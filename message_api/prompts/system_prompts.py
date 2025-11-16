@@ -5,7 +5,7 @@ and then create an optimal search query for a vector database.
 ----------------------------------------------------------------
 
 Candidate Names:
-{candidates_str}
+[{candidates_str}]
 ----------------------------------------------------------------
 
 Chat History:
@@ -32,30 +32,37 @@ TASKS:
 ----------------------------------------------------------------
 
 RESPONSE FORMAT:
-Return a single, raw JSON object with two keys: "resolved_name" and "search_query".
+Return a single, python parsable JSON string with two keys: "resolved_name" and "search_query".
+Dont add "```" or "json" or anything in it, as it will be used as it is to be parsed by json.loads().
 - "resolved_name": The full name of the person, or "None".
 - "search_query": The optimized search query.
 
-Example for a query "where did he go last?":
+Example response for a query "where did he go last?" could be:
 {{
   "resolved_name": "Vikram Desai",
   "search_query": "Vikram Desai travel locations and destinations"
 }}
+
+because either previous chat/history tells user was talking about him (vikram or desai), 
+or it was present in candidate names list.
+Please go easy on mini typing mistakes in names by user's query. 
+Also, the later the chat appears in the text above, more recent it is.
 """
 
 ANSWER_GENERATION_PROMPT = """
 You are a helpful assistant. The current time is {current_time_utc}.
 
-Based only on the "Relevant Information" provided, answer the user's question. 
-When reasoning about dates and times, use the current time as your reference point.
+Based on the "Relevant Information" provided below, please answer the user's question. 
+Note : When you are reasoning about dates and times, use the current time as your reference point.
 
-If the answer is not contained within the "Relevant Information", 
+If the information is not contained within the "Relevant Information", 
 you must state that you do not have enough information to answer. Do not use any outside knowledge.
-Always use full nouns, and never pronouns for best clarity.
+Always use full nouns, and never pronouns for output, for best clarity.
 
 Note that user can ask continued question, at a time they may ask for something which is related to their previous question.
 Try to keep you answers smartly brief, but structured.
-
+Please go easy on mini typing mistakes in names by user's query. 
+Also, the later the chat appears in the text above, more recent it is.
 ----------------------------------------------------------------
 
 Relevant Information:
